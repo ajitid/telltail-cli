@@ -135,6 +135,7 @@ func installSyncOnLinux(params installSyncOnLinuxParams) error {
 		if err != nil {
 			return cli.Exit("Cannot create service file for systemd", exitFileNotWriteable)
 		}
+		defer f.Close()
 		err = tmpl.Execute(f, syncSystemdCfgLinuxX11Attrs{
 			Tailnet:      params.tailnet,
 			Device:       params.device,
@@ -217,6 +218,7 @@ func installCenterOnLinux(authKey string) error {
 		if err != nil {
 			return cli.Exit("Cannot create service file for systemd", exitFileNotWriteable)
 		}
+		defer f.Close()
 		err = tmpl.Execute(f, centerSystemdCfgLinuxAttrs{
 			BinDirectory: baseBinLoc,
 		})
@@ -238,6 +240,7 @@ func installCenterOnLinux(authKey string) error {
 		if err != nil {
 			return cli.Exit("Cannot create service override file for systemd", exitFileNotWriteable)
 		}
+		defer f.Close()
 		err = tmpl.Execute(f, centerSystemdOverrideCfgLinuxAttrs{
 			AuthKey: authKey,
 		})
