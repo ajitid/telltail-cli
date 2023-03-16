@@ -41,7 +41,7 @@ func installSync(params installSyncParams) error {
 	}
 	baseBinLoc := filepath.Join(homeDir, ".local/share/telltail")
 
-	////// Download ans store clipnotify
+	////// Download and store clipnotify
 	{
 		loc := filepath.Join(baseBinLoc, "clipnotify")
 		err, exitCode := downloadFile(

@@ -12,9 +12,7 @@ so store your executables in there too
 */
 
 type syncSystemdCfgLinuxX11Attrs struct {
-	BinDirectory string
-	Tailnet      string
-	Device       string
+	BinDirectory, Tailnet, Device string
 }
 
 // read it as: get Telltail Sync's systemd config for "Linux on X11"

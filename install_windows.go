@@ -3,34 +3,58 @@ package main
 import (
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"runtime"
 
 	"github.com/urfave/cli/v2"
 )
 
+const startupPath = "AppData\\Roaming\\Microsoft\\Windows\\Start Menu\\Programs\\Startup"
+
 func installSync(params installSyncParams) error {
 	////// Check basic necessities exist
-	// FIXME TODO check if autohotkey exists
-	// remove existing clipnotify folder
+	if !cmdExists("autohotkey.exe") {
+		return cli.Exit("AutoHotkey is not present. We need that to run this program everytime you log in.\n"+
+			"You install it for free via https://www.autohotkey.com. Once installed, come back and rerun this command to continue the setup.", exitMissingDependency)
+	}
+	// TODO FIXME stop if there's existing telltail-sync running first. Otherwise we won't be able to override it.
+	// use AHK and something to stop it
 
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
 		return cli.Exit("Cannot determine your home folder", exitCannotDetermineUserHomeDir)
 	}
-	baseBinLoc := filepath.Join(homeDir, ".local/share/telltail")
+	baseBinLoc := filepath.Join(homeDir, ".local\\share\\telltail")
 
 	////// Download and store clipnotify
 	{
-		loc := filepath.Join(baseBinLoc, "clipnotify.zip")
+		if !cmdExists("tar.exe") {
+			return cli.Exit("Please upgrade to Windows 10 build 17063 or higher as we need `tar.exe` to extract a zip file.", exitMissingDependency)
+		}
+
+		zipLoc := filepath.Join(baseBinLoc, "clipnotify.zip")
 		err, exitCode := downloadFile(
 			"https://github.com/ajitid/clipnotify-for-desktop-os/releases/download/"+version+"/clipnotify-win-"+runtime.GOARCH+".zip",
-			loc)
+			zipLoc)
 		if err != nil {
 			return cli.Exit(err, exitCode)
 		}
-		// FIXME TODO extract it using tar.exe, see https://superuser.com/a/1473255
-		// Also, delete existing folder if exists
+
+		err = removeFolderIfPresent(filepath.Join(baseBinLoc, "clipnotify"))
+		if err != nil {
+			return cli.Exit("Couldn't delete existing clipnotify folder", exitDirNotCreatable)
+		}
+		extract := exec.Command("tar.exe", "-xf", "clipnotify.zip")
+		extract.Dir = baseBinLoc
+		_, err = extract.Output()
+		if err != nil {
+			return cli.Exit("Couldn't extract clipnotify.zip", exitFileNotWriteable)
+		}
+		err = removeFileIfPresent(zipLoc)
+		if err != nil {
+			fmt.Println("Couldn't delete the zip, please do it by yourself. It is at:\n", zipLoc)
+		}
 	}
 
 	////// Download and store the telltail-sync
@@ -44,36 +68,31 @@ func installSync(params installSyncParams) error {
 		}
 	}
 
-	////// Put bootup configuration
+	////// Put bootup configuration and start the service
 	{
-		// also change script such that triggering it restarts the service, right now it pops-up an alert
-	}
+		dir := filepath.Join(homeDir, startupPath)
+		loc := filepath.Join(dir, "telltail-sync.ahk")
+		tmpl := getSyncAhkCfg()
+		f, err := os.Create(loc)
+		if err != nil {
+			return cli.Exit("Cannot create AutoHotkey script", exitFileNotWriteable)
+		}
+		err = tmpl.Execute(f, syncAhkCfgAttrs{
+			Tailnet:      params.tailnet,
+			Device:       params.device,
+			BinDirectory: baseBinLoc,
+		})
+		if err != nil {
+			return cli.Exit("Cannot write to AutoHotkey script", exitFileNotWriteable)
+		}
+		f.Close()
 
-	////// Start the service
-	{
-		// ahk can be started from commandline
-		// cmd := exec.Command("systemctl", "--user", "daemon-reload")
-		// cmd.Output()
-		// cmd = exec.Command("systemctl", "--user", "enable", "telltail-sync", "--now")
-		// cmd.Output()
+		cmd := exec.Command("autohotkey.exe", loc)
+		_, err = cmd.Output()
+		if err != nil {
+			return cli.Exit("Couldn't start telltail-sync using AutoHotkey startup script", exitInvokingStartupScriptFailed)
+		}
 	}
-
-	// TODO handle failures:
-	// systemctl status will give status code 3 if:
-	// - service is stopped
-	// - start the service fails
-	// **Do note that** status code is 3 by telltail-center, not by telltail-sync (as I tested w/ telltail-center). It could be different for Sync.
-	// so yeah, that ain't a way to distinguish. It also prints logs from journalctl, which we can use though:
-	// On normal stop:
-	// Mar 16 14:47:24 sd systemd[2235]: Stopped telltail.service - Telltail server.
-	// Mar 16 14:47:24 sd systemd[2235]: telltail.service: Consumed 3min 39.217s CPU time.
-	// On failure stop:
-	// Mar 16 14:47:31 sd systemd[2235]: telltail.service: Main process exited, code=exited, status=203/EXEC
-	// Mar 16 14:47:31 sd systemd[2235]: telltail.service: Failed with result 'exit-code'.
-	//
-	// We probably could also be able to pass flags and get the active statuses:
-	//	Active: inactive (dead) // normal stop
-	//	Active: failed (Result: exit-code) since Thu 2023-03-16 14:47:31 IST; 4s ago // failure stop
 
 	////// Success message
 	fmt.Println("All done! You can read about the changes we've made on here: https://guide-on.gitbook.io/telltail/changes-done-by-install")
