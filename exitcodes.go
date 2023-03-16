@@ -4,7 +4,7 @@ package main
 const (
 	exitUnsupportedOs = 1
 	exitUnsupportedOsVariant
-	exitFileNotWriteable
+	exitFileNotWriteable // In rwx, w includes creation, deletion and modification. That's why we've used the word 'writeable'
 	exitDirNotCreatable
 	exitUrlNotDownloadable
 	exitMissingDependency

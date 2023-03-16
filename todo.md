@@ -9,7 +9,7 @@ correct tailnet name in docs and other places. Tailscale considers the whole `ja
 
 think about using fmt vs log
 
-main issues
+main issues (probably put them in tldr?):
 
 - dns-fight
 - manually going and removing telltail node because telltail-1 appears. Check if with tailscale cli all telltail[-num] nodes can be removed via telltail cli without sudo

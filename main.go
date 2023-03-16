@@ -77,9 +77,25 @@ func main() {
 					{
 						Name:  "center",
 						Usage: "Uninstalls Center",
+						Action: func(cc *cli.Context) error {
+							switch runtime.GOOS {
+							case "linux":
+								return uninstallCenterOnLinux()
+							default:
+								return cli.Exit("This OS is not supported yet. If this is a desktop OS, please file an issue using `telltail file-issue`", exitUnsupportedOs)
+							}
+						},
 					}, {
 						Name:  "sync",
 						Usage: "Uninstalls Sync",
+						Action: func(cc *cli.Context) error {
+							switch runtime.GOOS {
+							case "linux":
+								return uninstallSyncOnLinux()
+							default:
+								return cli.Exit("This OS is not supported yet. If this is a desktop OS, please file an issue using `telltail file-issue`", exitUnsupportedOs)
+							}
+						},
 					},
 				},
 			},
