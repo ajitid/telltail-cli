@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"os"
+	"runtime"
 
 	"github.com/pkg/browser"
 	"github.com/urfave/cli/v2"
@@ -17,7 +18,7 @@ func main() {
 
 	app := &cli.App{
 		Name:    "telltail",
-		Version: "v0.1.0",
+		Version: version,
 		Usage: "Telltail is a universal clipboard for text." +
 			" To make it work, we need to configure it for your device, and this CLI helps you manage that.",
 		Commands: []*cli.Command{
@@ -47,6 +48,14 @@ func main() {
 								Required: true,
 							},
 						},
+						Action: func(cc *cli.Context) error {
+							switch runtime.GOOS {
+							case "linux":
+								return installSyncOnLinux(installSyncOnLinuxParams{tailnet: cc.String("tailnet"), device: cc.String("device")})
+							default:
+								return cli.Exit("This OS is not supported yet. If this is a desktop OS, please file an issue using `telltail file-issue`", exitUnsupportedOs)
+							}
+						},
 					},
 				},
 			},
@@ -63,11 +72,16 @@ func main() {
 					},
 				},
 			},
+			// telltail sync stop/start/restart
 			// add one to edit: telltail edit center authkey >> which makes a cheap call to systemctl --user edit telltail-center
 			{
 				Name:  "healthcheck",
 				Usage: "TODO",
 				// TODO also open filepath location for easy access for the user, even better if you highlight the files in the explorer
+			},
+			{
+				Name:  "check-update",
+				Usage: "TODO",
 			},
 			{
 				Name:  "tldr",
@@ -82,6 +96,10 @@ func main() {
 				Action: func(cc *cli.Context) error {
 					return browser.OpenURL("https://guide-on.gitbook.io/telltail")
 				},
+			},
+			{
+				Name:  "file-issue",
+				Usage: "TODO",
 			},
 		},
 	}
