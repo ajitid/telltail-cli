@@ -29,31 +29,12 @@ func installSync(params installSyncParams) error {
 
 	////// Download and store clipnotify
 	{
-		if !cmdExists("tar.exe") {
-			return cli.Exit("Please upgrade to Windows 10 build 17063 or higher as we need `tar.exe` to extract a zip file.", exitMissingDependency)
-		}
-
-		zipLoc := filepath.Join(baseBinLoc, "clipnotify.zip")
+		loc := filepath.Join(baseBinLoc, "clipnotify.exe")
 		err, exitCode := downloadFile(
-			"https://github.com/ajitid/clipnotify-for-desktop-os/releases/download/"+version+"/clipnotify-win-"+runtime.GOARCH+".zip",
-			zipLoc)
+			"https://github.com/ajitid/clipnotify-for-desktop-os/releases/download/"+version+"/clipnotify-win-"+runtime.GOARCH+".exe",
+			loc)
 		if err != nil {
 			return cli.Exit(err, exitCode)
-		}
-
-		err = removeFolderIfPresent(filepath.Join(baseBinLoc, "clipnotify"))
-		if err != nil {
-			return cli.Exit("Couldn't delete existing clipnotify folder", exitDirNotCreatable)
-		}
-		extract := exec.Command("tar.exe", "-xf", "clipnotify.zip")
-		extract.Dir = baseBinLoc
-		_, err = extract.Output()
-		if err != nil {
-			return cli.Exit("Couldn't extract clipnotify.zip", exitFileNotWriteable)
-		}
-		err = removeFileIfPresent(zipLoc)
-		if err != nil {
-			fmt.Println("Couldn't delete the zip, please do it by yourself. It is at:\n", zipLoc)
 		}
 	}
 
@@ -87,11 +68,14 @@ func installSync(params installSyncParams) error {
 		}
 		f.Close()
 
-		cmd := exec.Command("autohotkey.exe", loc)
-		_, err = cmd.Output()
-		if err != nil {
-			return cli.Exit("Couldn't start telltail-sync using AutoHotkey startup script", exitInvokingStartupScriptFailed)
-		}
+		/*
+			Because of the way script is configured, running `autohotkey.exe telltail-sync.ahk` will actually make AHK wait for the program to close.
+			// cmd := exec.Command("autohotkey.exe", loc)
+
+			Rather we will run the script directly, which would send it to background:
+		*/
+		cmd := exec.Command(loc)
+		cmd.Output()
 	}
 
 	////// Success message
