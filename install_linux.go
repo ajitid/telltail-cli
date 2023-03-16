@@ -11,11 +11,7 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-type installSyncOnLinuxParams struct {
-	tailnet, device string
-}
-
-func installSyncOnLinux(params installSyncOnLinuxParams) error {
+func installSync(params installSyncParams) error {
 	////// Check basic necessities exist
 	// fmt.Println("Checking requirments...") <<< TODO this is useless and bearing for the user. Show them a progress bar and how much time is remaining instead
 	// check if system is x11, https://github.com/atotto/clipboard has ways to indentify it
@@ -126,7 +122,7 @@ func installSyncOnLinux(params installSyncOnLinuxParams) error {
 	return nil
 }
 
-func installCenterOnLinux(authKey string) error {
+func installCenter(authKey string) error {
 	{
 		if !cmdExists("systemctl") {
 			return cli.Exit("We use systemctl/systemd to run services on boot. We cannot proceed if that is not available.", exitMissingDependency)

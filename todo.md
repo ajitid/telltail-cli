@@ -1,3 +1,19 @@
+(another soln. from https://github.com/golang/go/issues/29202#issuecomment-1233042513)
+
+to write code for windows, open cli and write
+
+```
+setenv "GOOS" "windows"
+```
+
+before opening nvim. See https://github.com/golang/go/issues/29202.
+
+If it errors out with exit code 1, its fine. Doing `echo $GOOS` will give you the right result.
+
+The equivalent for fish is `set -x GOOS windows`. ref: https://fishshell.com/docs/current/cmds/set.html
+
+---
+
 check if a local file can be downloaded
 
 make sure that services are disabled and removed in a failsafe manner before re-enabling them by re-installing

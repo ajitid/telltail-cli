@@ -8,7 +8,7 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-func uninstallSyncOnLinux() error {
+func uninstallSync() error {
 	if cmdExists("systemctl") {
 		cmd := exec.Command("systemctl", "--user", "disable", "telltail-sync", "--now")
 		cmd.Output()
@@ -43,7 +43,7 @@ func uninstallSyncOnLinux() error {
 	return nil
 }
 
-func uninstallCenterOnLinux() error {
+func uninstallCenter() error {
 	if cmdExists("systemctl") {
 		cmd := exec.Command("systemctl", "--user", "disable", "telltail-center", "--now")
 		cmd.Output()

@@ -9,9 +9,6 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-// TODO
-// rangeSupported =
-
 func main() {
 	// removes timestamp from `log` https://stackoverflow.com/a/48630122
 	log.SetFlags(log.Flags() &^ (log.Ldate | log.Ltime))
@@ -38,11 +35,11 @@ func main() {
 						},
 						Action: func(cc *cli.Context) error {
 							switch runtime.GOOS {
-							case "linux":
+							case "linux", "windows":
 								if runtime.GOARCH != "amd64" {
 									return cli.Exit("This is only available for x86-64 (amd64) devices", exitUnsupportedOsVariant)
 								}
-								return installCenterOnLinux(cc.String("auth-key"))
+								return installCenter(cc.String("auth-key"))
 							default:
 								return cli.Exit("This OS is not supported yet. If this is a desktop OS, please file an issue using `telltail file-issue`", exitUnsupportedOs)
 							}
@@ -64,11 +61,11 @@ func main() {
 						},
 						Action: func(cc *cli.Context) error {
 							switch runtime.GOOS {
-							case "linux":
+							case "linux", "windows":
 								if runtime.GOARCH != "amd64" {
 									return cli.Exit("This is only available for x86-64 (amd64) devices", exitUnsupportedOsVariant)
 								}
-								return installSyncOnLinux(installSyncOnLinuxParams{tailnet: cc.String("tailnet"), device: cc.String("device")})
+								return installSync(installSyncParams{tailnet: cc.String("tailnet"), device: cc.String("device")})
 							default:
 								return cli.Exit("This OS is not supported yet. If this is a desktop OS, please file an issue using `telltail file-issue`", exitUnsupportedOs)
 							}
@@ -85,8 +82,8 @@ func main() {
 						Usage: "Uninstalls Center",
 						Action: func(cc *cli.Context) error {
 							switch runtime.GOOS {
-							case "linux":
-								return uninstallCenterOnLinux()
+							case "linux", "windows":
+								return uninstallCenter()
 							default:
 								return cli.Exit("This OS is not supported yet. If this is a desktop OS, please file an issue using `telltail file-issue`", exitUnsupportedOs)
 							}
@@ -96,8 +93,8 @@ func main() {
 						Usage: "Uninstalls Sync",
 						Action: func(cc *cli.Context) error {
 							switch runtime.GOOS {
-							case "linux":
-								return uninstallSyncOnLinux()
+							case "linux", "windows":
+								return uninstallSync()
 							default:
 								return cli.Exit("This OS is not supported yet. If this is a desktop OS, please file an issue using `telltail file-issue`", exitUnsupportedOs)
 							}
