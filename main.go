@@ -29,10 +29,21 @@ func main() {
 					{
 						Name:  "center",
 						Usage: "Installs Center. Only one device in your Tailscale network needs to install this, and the device should mostly be running when you work.",
-						// Action: func(cc *cli.Context) error {
-						// 	program := cc.Args().First()
-						// 	return nil
-						// },
+						Flags: []cli.Flag{
+							&cli.StringFlag{
+								Name:     "auth-key",
+								Usage:    "A reusable, non-ephermal key you obtained from https://login.tailscale.com/admin/settings/keys",
+								Required: true,
+							},
+						},
+						Action: func(cc *cli.Context) error {
+							switch runtime.GOOS {
+							case "linux":
+								return installCenterOnLinux(cc.String("auth-key"))
+							default:
+								return cli.Exit("This OS is not supported yet. If this is a desktop OS, please file an issue using `telltail file-issue`", exitUnsupportedOs)
+							}
+						},
 					}, {
 						Name:  "sync",
 						Usage: "Installs Sync. If you want Ctrl+C and Ctrl+V (or Command+C and Command+V in macOS) to use universal clipboard, then you should install it on this device.",
@@ -72,8 +83,9 @@ func main() {
 					},
 				},
 			},
+			// TODO telltail edit center-auth-key >> makes a cheap call to systemctl --user edit telltail-center
+			//
 			// telltail sync stop/start/restart
-			// add one to edit: telltail edit center authkey >> which makes a cheap call to systemctl --user edit telltail-center
 			{
 				Name:  "healthcheck",
 				Usage: "TODO",

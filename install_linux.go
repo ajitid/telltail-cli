@@ -133,7 +133,7 @@ func installSyncOnLinux(params installSyncOnLinuxParams) error {
 		tmpl := getSyncSystemdCfgLinuxX11()
 		f, err := os.Create(filepath.Join(dir, "telltail-sync.service"))
 		if err != nil {
-			return cli.Exit("Cannot create systemd file", exitFileNotWriteable)
+			return cli.Exit("Cannot create service file for systemd", exitFileNotWriteable)
 		}
 		err = tmpl.Execute(f, syncSystemdCfgLinuxX11Attrs{
 			Tailnet:      params.tailnet,
@@ -141,7 +141,7 @@ func installSyncOnLinux(params installSyncOnLinuxParams) error {
 			BinDirectory: baseBinLoc,
 		})
 		if err != nil {
-			return cli.Exit("Cannot write to systemd file", exitFileNotWriteable)
+			return cli.Exit("Cannot write to service file for systemd", exitFileNotWriteable)
 		}
 	}
 
@@ -152,6 +152,7 @@ func installSyncOnLinux(params installSyncOnLinuxParams) error {
 		cmd = exec.Command("systemctl", "--user", "enable", "telltail-sync", "--now")
 		cmd.Output()
 	}
+
 	// TODO handle failures:
 	// systemctl status will give status code 3 if:
 	// - service is stopped
@@ -170,10 +171,93 @@ func installSyncOnLinux(params installSyncOnLinuxParams) error {
 	//	Active: failed (Result: exit-code) since Thu 2023-03-16 14:47:31 IST; 4s ago // failure stop
 
 	////// Success message
-	fmt.Println("All done! You can read about the changes we've made on here https://guide-on.gitbook.io/telltail/changes-done-by-install")
+	fmt.Println("All done! You can read about the changes we've made on here: https://guide-on.gitbook.io/telltail/changes-done-by-install")
 	return nil
 }
 
-func installCenterOnLinux() {
+func installCenterOnLinux(authKey string) error {
+	{
+		if !cmdExists("systemctl") {
+			return cli.Exit("We use systemctl/systemd to run services on boot. We cannot proceed if that is not available.", exitMissingDependency)
+		}
+
+		// it'll fail if the systemd config is not present, which is fine as well, no need to panic
+		// doing this + the fact writing a file overrides the existing one will make the `install` idempotent
+		cmd := exec.Command("systemctl", "--user", "disable", "telltail-center", "--now")
+		cmd.Output()
+	}
+
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		return cli.Exit("Cannot determine your home folder", exitCannotDetermineUserHomeDir)
+	}
+	baseBinLoc := filepath.Join(homeDir, ".local/share/telltail")
+
+	{
+		loc := filepath.Join(baseBinLoc, "telltail-center")
+		err, exitCode := downloadFile(
+			"https://github.com/ajitid/telltail-center/releases/download/"+version+"/telltail-center-linux",
+			loc)
+		if err != nil {
+			return cli.Exit(err, exitCode)
+		}
+		markFileAsExecutableOnUnix(loc)
+	}
+
+	{
+		dir := filepath.Join(homeDir, ".config/systemd/user")
+		err = os.MkdirAll(dir, os.ModePerm)
+		if err != nil {
+			log.Println("Unable to create folder", dir)
+			return cli.Exit(err, exitDirNotCreatable)
+		}
+
+		tmpl := getCenterSystemdCfgLinux()
+		f, err := os.Create(filepath.Join(dir, "telltail-center.service"))
+		if err != nil {
+			return cli.Exit("Cannot create service file for systemd", exitFileNotWriteable)
+		}
+		err = tmpl.Execute(f, centerSystemdCfgLinuxAttrs{
+			BinDirectory: baseBinLoc,
+		})
+		if err != nil {
+			return cli.Exit("Cannot write to service file for systemd", exitFileNotWriteable)
+		}
+	}
+
+	{
+		dir := filepath.Join(homeDir, ".config/systemd/user/telltail-center.service.d")
+		err = os.MkdirAll(dir, os.ModePerm)
+		if err != nil {
+			log.Println("Unable to create folder", dir)
+			return cli.Exit(err, exitDirNotCreatable)
+		}
+
+		tmpl := getCenterSystemdOverrideCfgLinux()
+		f, err := os.Create(filepath.Join(dir, "override.conf"))
+		if err != nil {
+			return cli.Exit("Cannot create service override file for systemd", exitFileNotWriteable)
+		}
+		err = tmpl.Execute(f, centerSystemdOverrideCfgLinuxAttrs{
+			AuthKey: authKey,
+		})
+		if err != nil {
+			return cli.Exit("Cannot write to service override file for systemd", exitFileNotWriteable)
+		}
+	}
+
+	{
+		cmd := exec.Command("systemctl", "--user", "daemon-reload")
+		cmd.Output()
+		cmd = exec.Command("systemctl", "--user", "enable", "telltail-center", "--now")
+		cmd.Output()
+	}
+
+	// write to local override file and tell user to open it and manually enter key there to avoid
+	// and because they'll have the familiarity, they'll be able to update it as well. Revocation and expiration of key is quite common to happen
 	// tell them what they can use to change auth key if they need to
+
+	////// Success message
+	fmt.Println("All done! You can read about the changes we've made on here: https://guide-on.gitbook.io/telltail/changes-done-by-install")
+	return nil
 }
