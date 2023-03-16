@@ -1,37 +1,12 @@
 package main
 
 import (
-	"errors"
-	"io/fs"
 	"os"
 	"os/exec"
 	"path/filepath"
 
 	"github.com/urfave/cli/v2"
 )
-
-func fileOrFolderExists(fullpath string) bool {
-	_, err := os.Stat(fullpath)
-	return !errors.Is(err, fs.ErrNotExist)
-}
-
-func removeFileIfPresent(fullpath string) error {
-	if fileOrFolderExists(fullpath) {
-		if err := os.Remove(fullpath); err != nil {
-			return cli.Exit("Unable to remove "+filepath.Base(fullpath)+" from path "+filepath.Dir(fullpath), exitFileNotWriteable)
-		}
-	}
-	return nil
-}
-
-func removeFolderIfPresent(fullpath string) error {
-	if fileOrFolderExists(fullpath) {
-		if err := os.RemoveAll(fullpath); err != nil {
-			return cli.Exit("Unable to remove "+fullpath, exitDirNotCreatable)
-		}
-	}
-	return nil
-}
 
 func uninstallSyncOnLinux() error {
 	if cmdExists("systemctl") {
@@ -55,6 +30,11 @@ func uninstallSyncOnLinux() error {
 		return err
 	}
 	err = removeFileIfPresent(filepath.Join(baseBinLoc, "telltail-sync"))
+	if err != nil {
+		return err
+	}
+
+	err = removeDirIfEmpty(baseBinLoc)
 	if err != nil {
 		return err
 	}
@@ -85,6 +65,11 @@ func uninstallCenterOnLinux() error {
 
 	baseBinLoc := filepath.Join(homeDir, ".local/share/telltail")
 	err = removeFileIfPresent(filepath.Join(baseBinLoc, "telltail-center"))
+	if err != nil {
+		return err
+	}
+
+	err = removeDirIfEmpty(baseBinLoc)
 	if err != nil {
 		return err
 	}

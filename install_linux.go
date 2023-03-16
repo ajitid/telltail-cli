@@ -2,9 +2,7 @@ package main
 
 import (
 	"fmt"
-	"io"
 	"log"
-	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -12,55 +10,6 @@ import (
 
 	"github.com/urfave/cli/v2"
 )
-
-func cmdExists(cmd string) bool {
-	_, err := exec.LookPath(cmd)
-	return err == nil
-}
-
-// taken from https://stackoverflow.com/questions/11692860/how-can-i-efficiently-download-a-large-file-using-go
-func downloadFile(url, toLocation string) (error, int) {
-	dirName := filepath.Dir(toLocation)
-	err := os.MkdirAll(dirName, os.ModePerm)
-	if err != nil {
-		fileName := filepath.Base(toLocation)
-		log.Println("Unable to create folder", dirName, "for file", fileName)
-		return err, exitDirNotCreatable
-	}
-
-	// TODO check if it can successfully override existing file
-	out, err := os.Create(toLocation)
-	if err != nil {
-		return err, exitFileNotWriteable
-	}
-	defer out.Close()
-
-	resp, err := http.Get(url)
-	if err != nil {
-		return err, exitUrlNotDownloadable
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("bad status: %s for %s", resp.Status, url), exitUrlNotDownloadable
-	}
-
-	_, err = io.Copy(out, resp.Body)
-	if err != nil {
-		return err, exitFileNotWriteable
-	}
-
-	return nil, 0
-}
-
-func markFileAsExecutableOnUnix(fullPath string) {
-	cmd := exec.Command("chmod", "+x", fullPath)
-	_, err := cmd.Output()
-	if err != nil {
-		fmt.Println("cannnot mark file as executable:", fullPath)
-		panic(err)
-	}
-}
 
 type installSyncOnLinuxParams struct {
 	tailnet, device string
