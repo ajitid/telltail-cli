@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 
 	"github.com/urfave/cli/v2"
 )
@@ -99,7 +100,7 @@ func installSyncOnLinux(params installSyncOnLinuxParams) error {
 	{
 		loc := filepath.Join(baseBinLoc, "clipnotify")
 		err, exitCode := downloadFile(
-			"https://github.com/ajitid/clipnotify-for-desktop-os/releases/download/"+version+"/clipnotify-linux-x11",
+			"https://github.com/ajitid/clipnotify-for-desktop-os/releases/download/"+version+"/clipnotify-linux-x11-"+runtime.GOARCH,
 			loc)
 		if err != nil {
 			return cli.Exit(err, exitCode)
@@ -112,7 +113,7 @@ func installSyncOnLinux(params installSyncOnLinuxParams) error {
 	{
 		loc := filepath.Join(baseBinLoc, "telltail-sync")
 		err, exitCode := downloadFile(
-			"https://github.com/ajitid/telltail-sync/releases/download/"+version+"/telltail-sync-linux",
+			"https://github.com/ajitid/telltail-sync/releases/download/"+version+"/telltail-sync-linux-"+runtime.GOARCH,
 			loc)
 		if err != nil {
 			return cli.Exit(err, exitCode)
@@ -197,7 +198,7 @@ func installCenterOnLinux(authKey string) error {
 	{
 		loc := filepath.Join(baseBinLoc, "telltail-center")
 		err, exitCode := downloadFile(
-			"https://github.com/ajitid/telltail-center/releases/download/"+version+"/telltail-center-linux",
+			"https://github.com/ajitid/telltail-center/releases/download/"+version+"/telltail-center-linux-"+runtime.GOARCH,
 			loc)
 		if err != nil {
 			return cli.Exit(err, exitCode)

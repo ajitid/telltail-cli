@@ -39,6 +39,9 @@ func main() {
 						Action: func(cc *cli.Context) error {
 							switch runtime.GOOS {
 							case "linux":
+								if runtime.GOARCH != "amd64" {
+									return cli.Exit("This is only available for x86-64 (amd64) devices", exitUnsupportedOsVariant)
+								}
 								return installCenterOnLinux(cc.String("auth-key"))
 							default:
 								return cli.Exit("This OS is not supported yet. If this is a desktop OS, please file an issue using `telltail file-issue`", exitUnsupportedOs)
@@ -62,6 +65,9 @@ func main() {
 						Action: func(cc *cli.Context) error {
 							switch runtime.GOOS {
 							case "linux":
+								if runtime.GOARCH != "amd64" {
+									return cli.Exit("This is only available for x86-64 (amd64) devices", exitUnsupportedOsVariant)
+								}
 								return installSyncOnLinux(installSyncOnLinuxParams{tailnet: cc.String("tailnet"), device: cc.String("device")})
 							default:
 								return cli.Exit("This OS is not supported yet. If this is a desktop OS, please file an issue using `telltail file-issue`", exitUnsupportedOs)
