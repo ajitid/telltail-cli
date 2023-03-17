@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -28,7 +29,7 @@ func uninstallSync() error {
 		dir := filepath.Join(homeDir, binPath)
 		removeFolderIfPresent(filepath.Join(dir, "clipnotify"))
 		removeFileIfPresent(filepath.Join(dir, "telltail-sync.exe"))
-		removeDirIfEmpty(dir) // FIXME this doesn't removes the dir even if its empty, check why
+		removeDirIfEmpty(dir) // Doesn't remove the dir because windows says the access to this dir is held by some other program. Works if I rerun the uninstall though.
 	}
 	return nil
 }
@@ -52,7 +53,8 @@ func uninstallCenter() error {
 	{
 		dir := filepath.Join(homeDir, binPath)
 		removeFileIfPresent(filepath.Join(dir, "telltail-center.exe"))
-		removeDirIfEmpty(dir) // FIXME this doesn't removes the dir even if its empty, check why
+		removeDirIfEmpty(dir) // Doesn't remove the dir because windows says the access to this dir is held by some other program. Works if I rerun the uninstall though.
+		fmt.Println("If you are not planning to use Telltail Center on this device anytime soon and have installed AutoHotkey only for using Telltail Center, you can remove AutoHotkey as well.")
 	}
 	return nil
 }
