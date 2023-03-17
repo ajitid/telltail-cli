@@ -16,8 +16,11 @@ func getSyncAhkCfg() *template.Template {
 SendMode Input  ; suggested by AHK
 
 SetWorkingDir {{.BinDirectory}}
+Runwait taskkill /im telltail-sync.exe,,Hide
 RunWait telltail-sync.exe --url https://telltail.{{.Tailnet}} --device {{.Device}},,Hide
 `))
+	// I expected AHK to kill wasn't telltail-sync.exe on script restart
+	// but it isn't doing it so I YOLO-ed using taskkill
 
 	if err != nil {
 		// panicking is fine as here, as user cannot report anything about it

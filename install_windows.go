@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -11,6 +12,7 @@ import (
 )
 
 const startupPath = "AppData\\Roaming\\Microsoft\\Windows\\Start Menu\\Programs\\Startup"
+const binPath = ".local\\share\\telltail"
 
 func installSync(params installSyncParams) error {
 	////// Check basic necessities exist
@@ -25,7 +27,13 @@ func installSync(params installSyncParams) error {
 	if err != nil {
 		return cli.Exit("Cannot determine your home folder", exitCannotDetermineUserHomeDir)
 	}
-	baseBinLoc := filepath.Join(homeDir, ".local\\share\\telltail")
+	baseBinLoc := filepath.Join(homeDir, binPath)
+
+	// stop any running processes first, otherwise windows won't let us override them
+	{
+		cmd := exec.Command("taskkill", "/im", "telltail-sync.exe")
+		cmd.Output()
+	}
 
 	////// Download and store clipnotify
 	{
@@ -74,8 +82,14 @@ func installSync(params installSyncParams) error {
 
 			Rather we will run the script directly, which would send it to background:
 		*/
-		cmd := exec.Command(loc)
-		cmd.Output()
+		// from https://stackoverflow.com/a/50532038
+		cmd := exec.Command("cmd.exe", "/C", "start", "/b", loc)
+		if err := cmd.Run(); err != nil {
+			log.Println("Error:", err)
+		}
+		// cmd := exec.Command("autohotkey.exe", loc)
+		// cmd := exec.Command(".\\telltail-sync.ahk")
+		// cmd.Dir = dir
 	}
 
 	////// Success message
