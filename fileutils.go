@@ -22,7 +22,7 @@ func fileOrFolderExists(fullpath string) bool {
 func removeFileIfPresent(fullpath string) error {
 	if fileOrFolderExists(fullpath) {
 		if err := os.Remove(fullpath); err != nil {
-			return cli.Exit("Unable to remove "+filepath.Base(fullpath)+" from path "+filepath.Dir(fullpath), exitFileNotWriteable)
+			return cli.Exit("Unable to remove "+filepath.Base(fullpath)+" from path "+filepath.Dir(fullpath), exitFileNotModifiable)
 		}
 	}
 	return nil
@@ -32,7 +32,7 @@ func removeFileIfPresent(fullpath string) error {
 func removeFolderIfPresent(fullpath string) error {
 	if fileOrFolderExists(fullpath) {
 		if err := os.RemoveAll(fullpath); err != nil {
-			return cli.Exit("Unable to remove "+fullpath, exitDirNotCreatable)
+			return cli.Exit("Unable to remove "+fullpath, exitDirNotModifiable)
 		}
 	}
 	return nil
@@ -72,13 +72,13 @@ func downloadFile(url, toLocation string) (error, int) {
 	if err != nil {
 		fileName := filepath.Base(toLocation)
 		log.Println("Unable to create folder", dirName, "for file", fileName)
-		return err, exitDirNotCreatable
+		return err, exitDirNotModifiable
 	}
 
 	// TODO check if it can successfully override existing file
 	out, err := os.Create(toLocation)
 	if err != nil {
-		return err, exitFileNotWriteable
+		return err, exitFileNotModifiable
 	}
 	defer out.Close()
 
@@ -94,7 +94,7 @@ func downloadFile(url, toLocation string) (error, int) {
 
 	_, err = io.Copy(out, resp.Body)
 	if err != nil {
-		return err, exitFileNotWriteable
+		return err, exitFileNotModifiable
 	}
 
 	return nil, 0

@@ -10,6 +10,12 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
+/*
+TODO check when arguments are passed last --auth-key or --tailnet
+if they are passed empty they cli pkg allows them (not good)
+or doesn't (good, we want this behavior). Introduce guards if needed.
+*/
+
 func main() {
 	// removes timestamp from `log` https://stackoverflow.com/a/48630122
 	log.SetFlags(log.Flags() &^ (log.Ldate | log.Ltime))
@@ -109,6 +115,9 @@ func main() {
 				Subcommands: []*cli.Command{
 					{
 						Name: "center-auth-key",
+						Action: func(cc *cli.Context) error {
+							return editCenterAuthKey()
+						},
 					},
 				},
 			},

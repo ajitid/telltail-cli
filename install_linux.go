@@ -78,13 +78,13 @@ func installSync(params installSyncParams) error {
 		err = os.MkdirAll(dir, os.ModePerm)
 		if err != nil {
 			log.Println("Unable to create folder", dir)
-			return cli.Exit(err, exitDirNotCreatable)
+			return cli.Exit(err, exitDirNotModifiable)
 		}
 
 		tmpl := getSyncSystemdCfgLinuxX11()
 		f, err := os.Create(filepath.Join(dir, "telltail-sync.service"))
 		if err != nil {
-			return cli.Exit("Cannot create service file for systemd", exitFileNotWriteable)
+			return cli.Exit("Cannot create service file for systemd", exitFileNotModifiable)
 		}
 		defer f.Close()
 		err = tmpl.Execute(f, syncSystemdCfgLinuxX11Attrs{
@@ -93,7 +93,7 @@ func installSync(params installSyncParams) error {
 			BinDirectory: baseBinLoc,
 		})
 		if err != nil {
-			return cli.Exit("Cannot write to service file for systemd", exitFileNotWriteable)
+			return cli.Exit("Cannot write to service file for systemd", exitFileNotModifiable)
 		}
 	}
 
@@ -161,20 +161,20 @@ func installCenter(authKey string) error {
 		err = os.MkdirAll(dir, os.ModePerm)
 		if err != nil {
 			log.Println("Unable to create folder", dir)
-			return cli.Exit(err, exitDirNotCreatable)
+			return cli.Exit(err, exitDirNotModifiable)
 		}
 
 		tmpl := getCenterSystemdCfgLinux()
 		f, err := os.Create(filepath.Join(dir, "telltail-center.service"))
 		if err != nil {
-			return cli.Exit("Cannot create service file for systemd", exitFileNotWriteable)
+			return cli.Exit("Cannot create service file for systemd", exitFileNotModifiable)
 		}
 		defer f.Close()
 		err = tmpl.Execute(f, centerSystemdCfgLinuxAttrs{
 			BinDirectory: baseBinLoc,
 		})
 		if err != nil {
-			return cli.Exit("Cannot write to service file for systemd", exitFileNotWriteable)
+			return cli.Exit("Cannot write to service file for systemd", exitFileNotModifiable)
 		}
 	}
 
@@ -183,28 +183,28 @@ func installCenter(authKey string) error {
 		err = os.MkdirAll(dir, os.ModePerm)
 		if err != nil {
 			log.Println("Unable to create folder", dir)
-			return cli.Exit(err, exitDirNotCreatable)
+			return cli.Exit(err, exitDirNotModifiable)
 		}
 
 		tmpl := getCenterSystemdOverrideCfgLinux()
 		f, err := os.Create(filepath.Join(dir, "override.conf"))
 		if err != nil {
-			return cli.Exit("Cannot create service override file for systemd", exitFileNotWriteable)
+			return cli.Exit("Cannot create service override file for systemd", exitFileNotModifiable)
 		}
 		defer f.Close()
 		err = tmpl.Execute(f, centerSystemdOverrideCfgLinuxAttrs{
 			AuthKey: authKey,
 		})
 		if err != nil {
-			return cli.Exit("Cannot write to service override file for systemd", exitFileNotWriteable)
+			return cli.Exit("Cannot write to service override file for systemd", exitFileNotModifiable)
 		}
 	}
 
 	{
 		cmd := exec.Command("systemctl", "--user", "daemon-reload")
-		cmd.Output()
+		cmd.Run()
 		cmd = exec.Command("systemctl", "--user", "enable", "telltail-center", "--now")
-		cmd.Output()
+		cmd.Run()
 	}
 
 	// write to local override file and tell user to open it and manually enter key there to avoid

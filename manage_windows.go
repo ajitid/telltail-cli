@@ -26,7 +26,7 @@ func manageService(name string, action serviceAction) error {
 		return cli.Exit("This service is unavailable. Install it first before you act upon it.", exitServiceNotPresent)
 	}
 
-	home, err := os.UserCacheDir()
+	home, err := os.UserHomeDir()
 	if err != nil {
 		return cli.Exit("Cannot determine your home folder", exitCannotDetermineUserHomeDir)
 	}
