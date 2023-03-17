@@ -26,7 +26,7 @@ func uninstallSync() error {
 
 	{
 		dir := filepath.Join(homeDir, binPath)
-		removeFileIfPresent(filepath.Join(dir, "clipnotify.exe"))
+		removeFolderIfPresent(filepath.Join(dir, "clipnotify"))
 		removeFileIfPresent(filepath.Join(dir, "telltail-sync.exe"))
 		removeDirIfEmpty(dir) // FIXME this doesn't removes the dir even if its empty, check why
 	}
