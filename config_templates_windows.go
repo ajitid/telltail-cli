@@ -30,7 +30,7 @@ RunWait telltail-sync.exe --url https://telltail.{{.Tailnet}} --device {{.Device
 }
 
 type centerAhkCfgAttrs struct {
-	BinDirectory string
+	BinDirectory, AuthKey string
 }
 
 func getCenterAhkCfg() *template.Template {
@@ -39,7 +39,9 @@ func getCenterAhkCfg() *template.Template {
 #NoEnv  ; suggested by AHK
 SendMode Input  ; suggested by AHK
 
+EnvSet, TS_AUTHKEY, {{.AuthKey}}
 SetWorkingDir {{.BinDirectory}}
+Runwait taskkill /im telltail-center.exe,,Hide
 RunWait telltail-center.exe,,Hide
 `))
 

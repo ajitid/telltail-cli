@@ -20,8 +20,6 @@ func installSync(params installSyncParams) error {
 		return cli.Exit("AutoHotkey is not present. We need that to run this program everytime you log in.\n"+
 			"You install it for free via https://www.autohotkey.com. Once installed, come back and rerun this command to continue the setup.", exitMissingDependency)
 	}
-	// TODO FIXME stop if there's existing telltail-sync running first. Otherwise we won't be able to override it.
-	// use AHK and something to stop it
 
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
@@ -29,7 +27,7 @@ func installSync(params installSyncParams) error {
 	}
 	baseBinLoc := filepath.Join(homeDir, binPath)
 
-	// stop any running processes first, otherwise windows won't let us override them
+	////// stop any running processes first, otherwise windows won't let us override them
 	{
 		cmd := exec.Command("taskkill", "/im", "telltail-sync.exe")
 		cmd.Output()
@@ -90,15 +88,24 @@ func installSync(params installSyncParams) error {
 }
 
 func installCenter(authKey string) error {
-	// TODO FIXME check for autohotkey
-	// kill running and delete existing stuff if needed
+	if !cmdExists("autohotkey.exe") {
+		return cli.Exit("AutoHotkey is not present. We need that to run this program everytime you log in.\n"+
+			"You install it for free via https://www.autohotkey.com. Once installed, come back and rerun this command to continue the setup.", exitMissingDependency)
+	}
 
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
 		return cli.Exit("Cannot determine your home folder", exitCannotDetermineUserHomeDir)
 	}
-	baseBinLoc := filepath.Join(homeDir, ".local/share/telltail")
+	baseBinLoc := filepath.Join(homeDir, binPath)
 
+	////// stop any running processes first, otherwise windows won't let us override them
+	{
+		cmd := exec.Command("taskkill", "/im", "telltail-center.exe")
+		cmd.Output()
+	}
+
+	////// Download and store the telltail-center
 	{
 		loc := filepath.Join(baseBinLoc, "telltail-center.exe")
 		err, exitCode := downloadFile(
@@ -107,12 +114,33 @@ func installCenter(authKey string) error {
 		if err != nil {
 			return cli.Exit(err, exitCode)
 		}
-		markFileAsExecutableOnUnix(loc)
 	}
 
-	// write to local override file and tell user to open it and manually enter key there to avoid
-	// and because they'll have the familiarity, they'll be able to update it as well. Revocation and expiration of key is quite common to happen
-	// tell them what they can use to change auth key if they need to
+	////// Put bootup configuration and start the service
+	{
+		dir := filepath.Join(homeDir, startupPath)
+		loc := filepath.Join(dir, "telltail-center.ahk")
+		tmpl := getCenterAhkCfg()
+		f, err := os.Create(loc)
+		if err != nil {
+			return cli.Exit("Cannot create AutoHotkey script", exitFileNotWriteable)
+		}
+		err = tmpl.Execute(f, centerAhkCfgAttrs{
+			BinDirectory: baseBinLoc,
+			AuthKey:      authKey,
+		})
+		if err != nil {
+			return cli.Exit("Cannot write to AutoHotkey script", exitFileNotWriteable)
+		}
+		f.Close()
+
+		// from https://stackoverflow.com/a/50532038
+		cmd := exec.Command("cmd.exe", "/C", "start", "/b", ".\\telltail-center.ahk")
+		cmd.Dir = dir
+		if err := cmd.Run(); err != nil {
+			log.Println("Error:", err)
+		}
+	}
 
 	////// Success message
 	fmt.Println("All done! You can read about the changes we've made on here: https://guide-on.gitbook.io/telltail/changes-done-by-install")
