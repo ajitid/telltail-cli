@@ -1,3 +1,7 @@
+use .Run() over .Output() for commands
+
+---
+
 (another soln. from https://github.com/golang/go/issues/29202#issuecomment-1233042513)
 
 to write code for windows, open cli and write

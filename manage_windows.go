@@ -14,7 +14,7 @@ func isServiceAvailable(name string) bool {
 	if err != nil {
 		return false
 	}
-	return fileOrFolderExists(filepath.Join(home, startupPath, "telltail-"+name+".service"))
+	return fileOrFolderExists(filepath.Join(home, startupPath, "telltail-"+name+".ahk"))
 }
 
 func manageService(name string, action serviceAction) error {
@@ -26,14 +26,24 @@ func manageService(name string, action serviceAction) error {
 		return cli.Exit("This service is unavailable. Install it first before you act upon it.", exitServiceNotPresent)
 	}
 
+	home, err := os.UserCacheDir()
+	if err != nil {
+		return cli.Exit("Cannot determine your home folder", exitCannotDetermineUserHomeDir)
+	}
+	dir := filepath.Join(home, startupPath)
+
 	var cmd *exec.Cmd
 	switch action {
 	case startService:
-		cmd = exec.Command("systemctl", "--user", "start", "telltail-"+name)
+		cmd = exec.Command("cmd.exe", "/C", "start", "/b", ".\\telltail-"+name+".ahk")
+		cmd.Dir = dir
 	case stopService:
-		cmd = exec.Command("systemctl", "--user", "stop", "telltail-"+name)
+		cmd = exec.Command("taskkill", "/im", "telltail-"+name+".exe")
 	case restartService:
-		cmd = exec.Command("systemctl", "--user", "restart", "telltail-"+name)
+		cmd = exec.Command("taskkill", "/im", "telltail-"+name+".exe")
+		cmd.Run()
+		cmd = exec.Command("cmd.exe", "/C", "start", "/b", ".\\telltail-"+name+".ahk")
+		cmd.Dir = dir
 	}
 	cmd.Run()
 	return nil
