@@ -76,20 +76,12 @@ func installSync(params installSyncParams) error {
 		}
 		f.Close()
 
-		/*
-			Because of the way script is configured, running `autohotkey.exe telltail-sync.ahk` will actually make AHK wait for the program to close.
-			// cmd := exec.Command("autohotkey.exe", loc)
-
-			Rather we will run the script directly, which would send it to background:
-		*/
 		// from https://stackoverflow.com/a/50532038
-		cmd := exec.Command("cmd.exe", "/C", "start", "/b", loc)
+		cmd := exec.Command("cmd.exe", "/C", "start", "/b", ".\\telltail-sync.ahk")
+		cmd.Dir = dir
 		if err := cmd.Run(); err != nil {
 			log.Println("Error:", err)
 		}
-		// cmd := exec.Command("autohotkey.exe", loc)
-		// cmd := exec.Command(".\\telltail-sync.ahk")
-		// cmd.Dir = dir
 	}
 
 	////// Success message
