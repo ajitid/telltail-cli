@@ -11,7 +11,7 @@ type syncAhkCfgAttrs struct {
 
 func getSyncAhkCfg() *template.Template {
 	tmpl, err := template.New("sync-ahk-cfg-windows").Parse(strings.TrimSpace(`
-#SingleInstance Force
+#SingleInstance Ignore
 #NoEnv  ; suggested by AHK
 SendMode Input  ; suggested by AHK
 
@@ -35,7 +35,7 @@ type centerAhkCfgAttrs struct {
 
 func getCenterAhkCfg() *template.Template {
 	tmpl, err := template.New("sync-ahk-cfg-windows").Parse(strings.TrimSpace(`
-#SingleInstance Force
+#SingleInstance Ignore
 #NoEnv  ; suggested by AHK
 SendMode Input  ; suggested by AHK
 
