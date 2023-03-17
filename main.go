@@ -15,14 +15,15 @@ func main() {
 	log.SetFlags(log.Flags() &^ (log.Ldate | log.Ltime))
 
 	app := &cli.App{
-		Name:    "telltail",
+		Name:    "telltail-cli",
 		Version: version,
 		Usage: "Telltail is a universal clipboard for text." +
-			" To make it work, we need to configure it for your device, and this CLI helps you manage that.",
+			" To make it work, we configure it for your device, and this CLI helps you to do that.",
 		Commands: []*cli.Command{
 			{
-				Name:  "install",
-				Usage: "Install one of Telltail programs",
+				Name:     "install",
+				Category: "Install",
+				Usage:    "Install one of Telltail programs",
 				Subcommands: []*cli.Command{
 					{
 						Name:  "center",
@@ -59,8 +60,9 @@ func main() {
 				},
 			},
 			{
-				Name:  "uninstall",
-				Usage: "Uninstall one of Telltail programs",
+				Name:     "uninstall",
+				Category: "Install",
+				Usage:    "Uninstall one of Telltail programs",
 				Subcommands: []*cli.Command{
 					{
 						Name:  "center",
@@ -77,35 +79,54 @@ func main() {
 					},
 				},
 			},
+			{
+				Name:     "start",
+				Category: "Manage",
+				Usage:    "Start a service",
+				Action: func(cc *cli.Context) error {
+					return manageService(cc.Args().Get(0), startService)
+				},
+			},
+			{
+				Name:     "stop",
+				Category: "Manage",
+				Usage:    "Stop a service. (This will not stop it from running on system restart. Use uninstall for that.)",
+				Action: func(cc *cli.Context) error {
+					return manageService(cc.Args().Get(0), stopService)
+				},
+			},
+			{
+				Name:     "restart",
+				Category: "Manage",
+				Usage:    "Restart a service",
+				Action: func(cc *cli.Context) error {
+					return manageService(cc.Args().Get(0), restartService)
+				},
+			},
+			{
+				Name:     "edit",
+				Category: "Manage",
+				Subcommands: []*cli.Command{
+					{
+						Name: "center-auth-key",
+					},
+				},
+			},
 			// TODO telltail edit center-auth-key >> makes a cheap call to systemctl --user edit telltail-center
 			//
 			// telltail sync stop/start/restart
 			{
-				Name:  "healthcheck",
-				Usage: "TODO",
-				// TODO also open filepath location for easy access for the user, even better if you highlight the files in the explorer
-			},
-			{
-				Name:  "check-update",
-				Usage: "TODO",
-			},
-			{
-				Name:  "tldr",
-				Usage: "TODO",
-				// TODO also open filepath location for easy access for the user, even better if you highlight the files in the explorer
-				// publish to TLDR npm as well
-				// check `tldr screenkey` and `tldr tailscale`
-			},
-			{
-				Name:  "guide",
-				Usage: "Opens documentation guide in your browser",
+				Name:     "guide",
+				Category: "Help",
+				Usage:    "Opens documentation guide in your browser",
 				Action: func(cc *cli.Context) error {
 					return browser.OpenURL("https://guide-on.gitbook.io/telltail")
 				},
 			},
 			{
-				Name:  "file-issue",
-				Usage: "TODO",
+				Name:     "help",
+				Category: "Help",
+				Usage:    "Opens this help",
 			},
 		},
 	}

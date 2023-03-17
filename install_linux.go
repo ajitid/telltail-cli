@@ -11,6 +11,11 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
+const (
+	binPath     = ".local/share/telltail"
+	startupPath = ".config/systemd/user"
+)
+
 func installSync(params installSyncParams) error {
 	////// Check basic necessities exist
 	// fmt.Println("Checking requirments...") <<< TODO this is useless and bearing for the user. Show them a progress bar and how much time is remaining instead
@@ -39,7 +44,7 @@ func installSync(params installSyncParams) error {
 	if err != nil {
 		return cli.Exit("Cannot determine your home folder", exitCannotDetermineUserHomeDir)
 	}
-	baseBinLoc := filepath.Join(homeDir, ".local/share/telltail")
+	baseBinLoc := filepath.Join(homeDir, binPath)
 
 	////// Download and store clipnotify
 	{
@@ -69,7 +74,7 @@ func installSync(params installSyncParams) error {
 	////// Put bootup configuration
 	// fmt.Println("Configuring for it load on boot...")
 	{
-		dir := filepath.Join(homeDir, ".config/systemd/user")
+		dir := filepath.Join(homeDir, startupPath)
 		err = os.MkdirAll(dir, os.ModePerm)
 		if err != nil {
 			log.Println("Unable to create folder", dir)
@@ -138,7 +143,7 @@ func installCenter(authKey string) error {
 	if err != nil {
 		return cli.Exit("Cannot determine your home folder", exitCannotDetermineUserHomeDir)
 	}
-	baseBinLoc := filepath.Join(homeDir, ".local/share/telltail")
+	baseBinLoc := filepath.Join(homeDir, binPath)
 
 	{
 		loc := filepath.Join(baseBinLoc, "telltail-center")
@@ -152,7 +157,7 @@ func installCenter(authKey string) error {
 	}
 
 	{
-		dir := filepath.Join(homeDir, ".config/systemd/user")
+		dir := filepath.Join(homeDir, startupPath)
 		err = os.MkdirAll(dir, os.ModePerm)
 		if err != nil {
 			log.Println("Unable to create folder", dir)
@@ -174,7 +179,7 @@ func installCenter(authKey string) error {
 	}
 
 	{
-		dir := filepath.Join(homeDir, ".config/systemd/user/telltail-center.service.d")
+		dir := filepath.Join(homeDir, startupPath, "telltail-center.service.d")
 		err = os.MkdirAll(dir, os.ModePerm)
 		if err != nil {
 			log.Println("Unable to create folder", dir)
