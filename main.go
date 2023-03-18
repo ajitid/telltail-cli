@@ -23,7 +23,7 @@ func main() {
 			{
 				Name:     "install",
 				Category: "Install",
-				Usage:    "Install one of Telltail programs",
+				Usage:    "Install one of Telltail services",
 				Subcommands: []*cli.Command{
 					{
 						Name:  "center",
@@ -70,7 +70,7 @@ func main() {
 			{
 				Name:     "uninstall",
 				Category: "Install",
-				Usage:    "Uninstall one of Telltail programs",
+				Usage:    "Uninstall one of Telltail services",
 				Subcommands: []*cli.Command{
 					{
 						Name:  "center",
@@ -90,7 +90,7 @@ func main() {
 			{
 				Name:     "start",
 				Category: "Manage",
-				Usage:    "Start a program",
+				Usage:    "Start a service",
 				Action: func(cc *cli.Context) error {
 					return manageService(cc.Args().Get(0), startService)
 				},
@@ -98,7 +98,7 @@ func main() {
 			{
 				Name:     "stop",
 				Category: "Manage",
-				Usage:    "Stop a program. (This will not stop it from running on system restart. Use uninstall for that.)",
+				Usage:    "Stop a service. (This will not stop it from running on system restart. Use uninstall for that.)",
 				Action: func(cc *cli.Context) error {
 					return manageService(cc.Args().Get(0), stopService)
 				},
@@ -106,7 +106,7 @@ func main() {
 			{
 				Name:     "restart",
 				Category: "Manage",
-				Usage:    "Restart a program",
+				Usage:    "Restart a service",
 				Action: func(cc *cli.Context) error {
 					return manageService(cc.Args().Get(0), restartService)
 				},
@@ -114,7 +114,7 @@ func main() {
 			{
 				Name:     "edit",
 				Category: "Manage",
-				Usage:    "Edit config of a program",
+				Usage:    "Edit config of a service",
 				Subcommands: []*cli.Command{
 					{
 						Name: "center-auth-key",
