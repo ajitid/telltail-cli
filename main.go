@@ -10,21 +10,15 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-/*
-TODO check when arguments are passed last --auth-key or --tailnet
-if they are passed empty they cli pkg allows them (not good)
-or doesn't (good, we want this behavior). Introduce guards if needed.
-*/
-
 func main() {
 	// removes timestamp from `log` https://stackoverflow.com/a/48630122
+	// TODO think about if I really need this
 	log.SetFlags(log.Flags() &^ (log.Ldate | log.Ltime))
 
 	app := &cli.App{
-		Name:    "telltail-cli",
+		Name:    "telltail",
 		Version: version,
-		Usage: "Telltail is a universal clipboard for text." +
-			" To make it work, we configure it for your device, and this CLI helps you to do that.",
+		Usage:   "Telltail is a universal clipboard for text. And this CLI lets you configure it for your device.",
 		Commands: []*cli.Command{
 			{
 				Name:     "install",
@@ -42,6 +36,10 @@ func main() {
 							},
 						},
 						Action: func(cc *cli.Context) error {
+							err := guardArgsNonEmpty(cc, "auth-key")
+							if err != nil {
+								return err
+							}
 							return installCenter(cc.String("auth-key"))
 						},
 					}, {
@@ -60,6 +58,10 @@ func main() {
 							},
 						},
 						Action: func(cc *cli.Context) error {
+							err := guardArgsNonEmpty(cc, "tailnet", "device")
+							if err != nil {
+								return err
+							}
 							return installSync(installSyncParams{tailnet: cc.String("tailnet"), device: cc.String("device")})
 						},
 					},
@@ -88,7 +90,7 @@ func main() {
 			{
 				Name:     "start",
 				Category: "Manage",
-				Usage:    "Start a service",
+				Usage:    "Start a program",
 				Action: func(cc *cli.Context) error {
 					return manageService(cc.Args().Get(0), startService)
 				},
@@ -96,7 +98,7 @@ func main() {
 			{
 				Name:     "stop",
 				Category: "Manage",
-				Usage:    "Stop a service. (This will not stop it from running on system restart. Use uninstall for that.)",
+				Usage:    "Stop a program. (This will not stop it from running on system restart. Use uninstall for that.)",
 				Action: func(cc *cli.Context) error {
 					return manageService(cc.Args().Get(0), stopService)
 				},
@@ -104,7 +106,7 @@ func main() {
 			{
 				Name:     "restart",
 				Category: "Manage",
-				Usage:    "Restart a service",
+				Usage:    "Restart a program",
 				Action: func(cc *cli.Context) error {
 					return manageService(cc.Args().Get(0), restartService)
 				},
@@ -112,6 +114,7 @@ func main() {
 			{
 				Name:     "edit",
 				Category: "Manage",
+				Usage:    "Edit config of a program",
 				Subcommands: []*cli.Command{
 					{
 						Name: "center-auth-key",
@@ -121,9 +124,6 @@ func main() {
 					},
 				},
 			},
-			// TODO telltail edit center-auth-key >> makes a cheap call to systemctl --user edit telltail-center
-			//
-			// telltail sync stop/start/restart
 			{
 				Name:     "guide",
 				Category: "Help",
