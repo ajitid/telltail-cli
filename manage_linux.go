@@ -105,6 +105,7 @@ func editCenterAuthKey() error {
 	}
 
 	output := strings.Join(lines, "\n")
+	// https://stackoverflow.com/a/18415935/7683365
 	err = os.WriteFile(fullpath, []byte(output), 0644)
 	if err != nil {
 		return cli.Exit("Unable to write to config file", exitFileNotModifiable)
