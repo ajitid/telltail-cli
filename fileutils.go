@@ -10,9 +10,30 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"time"
 
+	pb "github.com/schollz/progressbar/v3"
 	"github.com/urfave/cli/v2"
 )
+
+// modified version of progressbar.DefaultBytes()
+func newBar(maxBytes int64, description ...string) *pb.ProgressBar {
+	desc := ""
+	if len(description) > 0 {
+		desc = description[0]
+	}
+	return pb.NewOptions64(
+		maxBytes,
+		pb.OptionSetDescription(desc),
+		pb.OptionSetWriter(os.Stderr),
+		pb.OptionSetWidth(25),
+		pb.OptionThrottle(65*time.Millisecond),
+		pb.OptionShowBytes(true),
+		pb.OptionShowCount(),
+		pb.OptionClearOnFinish(),
+		pb.OptionSetRenderBlankState(true),
+	)
+}
 
 func fileOrFolderExists(fullpath string) bool {
 	_, err := os.Stat(fullpath)
@@ -68,9 +89,9 @@ func cmdExists(cmd string) bool {
 // taken from https://stackoverflow.com/questions/11692860/how-can-i-efficiently-download-a-large-file-using-go
 func downloadFile(url, toLocation string) (error, int) {
 	dirName := filepath.Dir(toLocation)
+	fileName := filepath.Base(toLocation)
 	err := os.MkdirAll(dirName, os.ModePerm)
 	if err != nil {
-		fileName := filepath.Base(toLocation)
 		log.Println("Unable to create folder", dirName, "for file", fileName)
 		return err, exitDirNotModifiable
 	}
@@ -92,7 +113,12 @@ func downloadFile(url, toLocation string) (error, int) {
 		return fmt.Errorf("bad status: %s for %s", resp.Status, url), exitUrlNotDownloadable
 	}
 
-	_, err = io.Copy(out, resp.Body)
+	bar := newBar(
+		resp.ContentLength,
+		"🡫 "+fileName,
+	)
+
+	_, err = io.Copy(io.MultiWriter(out, bar), resp.Body)
 	if err != nil {
 		return err, exitFileNotModifiable
 	}
