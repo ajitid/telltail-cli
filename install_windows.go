@@ -49,13 +49,13 @@ func installSync(params installSyncParams) error {
 
 		err = removeFolderIfPresent(filepath.Join(baseBinLoc, "clipnotify"))
 		if err != nil {
-			return cli.Exit("Couldn't delete existing clipnotify folder", exitDirNotCreatable)
+			return cli.Exit("Couldn't delete existing clipnotify folder", exitDirNotModifiable)
 		}
 		extract := exec.Command("tar.exe", "-xf", "clipnotify.zip")
 		extract.Dir = baseBinLoc
 		_, err = extract.Output()
 		if err != nil {
-			return cli.Exit("Couldn't extract clipnotify.zip", exitFileNotWriteable)
+			return cli.Exit("Couldn't extract clipnotify.zip", exitFileNotModifiable)
 		}
 		err = removeFileIfPresent(zipLoc)
 		if err != nil {
@@ -81,7 +81,7 @@ func installSync(params installSyncParams) error {
 		tmpl := getSyncAhkCfg()
 		f, err := os.Create(loc)
 		if err != nil {
-			return cli.Exit("Cannot create AutoHotkey script", exitFileNotWriteable)
+			return cli.Exit("Cannot create AutoHotkey script", exitFileNotModifiable)
 		}
 		err = tmpl.Execute(f, syncAhkCfgAttrs{
 			Tailnet:      params.tailnet,
@@ -89,7 +89,7 @@ func installSync(params installSyncParams) error {
 			BinDirectory: baseBinLoc,
 		})
 		if err != nil {
-			return cli.Exit("Cannot write to AutoHotkey script", exitFileNotWriteable)
+			return cli.Exit("Cannot write to AutoHotkey script", exitFileNotModifiable)
 		}
 		f.Close()
 
@@ -142,14 +142,14 @@ func installCenter(authKey string) error {
 		tmpl := getCenterAhkCfg()
 		f, err := os.Create(loc)
 		if err != nil {
-			return cli.Exit("Cannot create AutoHotkey script", exitFileNotWriteable)
+			return cli.Exit("Cannot create AutoHotkey script", exitFileNotModifiable)
 		}
 		err = tmpl.Execute(f, centerAhkCfgAttrs{
 			BinDirectory: baseBinLoc,
 			AuthKey:      authKey,
 		})
 		if err != nil {
-			return cli.Exit("Cannot write to AutoHotkey script", exitFileNotWriteable)
+			return cli.Exit("Cannot write to AutoHotkey script", exitFileNotModifiable)
 		}
 		f.Close()
 
