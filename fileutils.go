@@ -115,7 +115,7 @@ func downloadFile(url, toLocation string) (error, int) {
 
 	bar := newBar(
 		resp.ContentLength,
-		"🡫 "+fileName,
+		"↓ "+fileName,
 	)
 
 	_, err = io.Copy(io.MultiWriter(out, bar), resp.Body)

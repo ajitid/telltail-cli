@@ -1,4 +1,5 @@
 use .Run() over .Output() for commands
+use the word partial to denote paths which are incomplete by alone (or use the word relative maybe?)
 
 ---
 
