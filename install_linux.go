@@ -37,7 +37,12 @@ func installSync(params installSyncParams) error {
 	}
 
 	if !cmdExists("xsel") && !cmdExists("xclip") {
-		return cli.Exit("Either install `xsel` or `xclip` from your package manager first", exitMissingDependency)
+		return cli.Exit("Please install `xsel` from your package manager first", exitMissingDependency)
+	} else {
+		if !cmdExists("xsel") {
+			fmt.Println("Although you have `xclip` installed, we'd recommend you to install `xsel` from your package manager" +
+				" (because we've found that reading clipboard's content from `xclip` fails spontaneously).")
+		}
 	}
 
 	homeDir, err := os.UserHomeDir()
