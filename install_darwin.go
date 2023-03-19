@@ -18,6 +18,7 @@ import (
 // launchctl unload -w /path/to/job	→ systemctl disable job --now
 // launchctl unload /path/to/job		→ systemctl stop job
 // Seems like there's no equivalent to `systemctl enable job`
+// Also these commands, unlike systemctl, exit immediately. They don't wait for a service to go up or down.
 //
 // start and stop exists as well, but they seem to be an override on top of load and unload
 // so we'll avoid complexity by not using them at all

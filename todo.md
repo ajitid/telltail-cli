@@ -1,3 +1,13 @@
+main issues:
+
+- iOS prompts appear initially, and when you use it first time in a specific app: do Allow or Always Allow if the option is present
+- Before you start:
+  - tailnet name
+  - shortcuts app installed
+  - need connect to tailscale shortcuts installed before you install any of the following shortcut
+
+---
+
 use .Run() over .Output() for commands
 use the word partial to denote paths which are incomplete by alone (or use the word relative maybe?)
 
