@@ -56,5 +56,7 @@ func uninstallCenter() error {
 		removeDirIfEmpty(dir) // Doesn't remove the dir because windows says the access to this dir is held by some other program. Works if I rerun the uninstall though.
 		fmt.Println("If you are not planning to use Telltail Center on this device anytime soon and have installed AutoHotkey only for using Telltail Center, you can remove AutoHotkey as well.")
 	}
+
+	fmt.Println("You can remove 'telltail' machine from Tailscale's Admin Console as well.")
 	return nil
 }

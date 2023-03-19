@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -74,6 +75,6 @@ func uninstallCenter() error {
 		return err
 	}
 
-	// fmt.Println("Uninstalled")
+	fmt.Println("You can remove 'telltail' machine from Tailscale's Admin Console as well.")
 	return nil
 }
