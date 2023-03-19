@@ -99,7 +99,7 @@ func editCenterAuthKey() error {
 	}
 
 	if !ableToParseExistingAuthKey {
-		return cli.Exit("Unable to change auth key because we've found an invalid config", exitInvalidConfig)
+		return cli.Exit("Unable to find auth key because the config looks invalid", exitInvalidConfig)
 	}
 
 	output := strings.Join(lines, "\n")

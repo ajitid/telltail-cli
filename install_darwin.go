@@ -11,6 +11,17 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
+// ref. https://apple.stackexchange.com/a/308421
+// we'll stick to load/unload as:
+// launchctl load -w /path/to/job		→ systemctl enable job --now
+// launchctl load /path/to/job			→ act like systemctl start job if we've run launchctl unload -w /path/to/job just before, and system enable job --now otherwise
+// launchctl unload -w /path/to/job	→ systemctl disable job --now
+// launchctl unload /path/to/job		→ systemctl stop job
+// Seems like there's no equivalent to `systemctl enable job`
+//
+// start and stop exists as well, but they seem to be an override on top of load and unload
+// so we'll avoid complexity by not using them at all
+
 const (
 	binPath      = ".local/share/telltail"
 	startupPath  = "Library/LaunchAgents"
@@ -31,7 +42,7 @@ func installSync(params installSyncParams) error {
 		}
 
 		// acts like: systemctl disable telltail-sync --now
-		cmd := exec.Command("launchctl", "unload", filepath.Join(homeDir, startupPath, scriptPrefix+"telltail-sync.plist"))
+		cmd := exec.Command("launchctl", "unload", "-w", filepath.Join(homeDir, startupPath, scriptPrefix+"telltail-sync.plist"))
 		cmd.Run()
 	}
 
@@ -85,9 +96,7 @@ func installSync(params installSyncParams) error {
 			return cli.Exit("Cannot write to service file for systemd", exitFileNotModifiable)
 		}
 
-		cmd := exec.Command("launchctl", "load", filepath.Join(dir, scriptPrefix+"telltail-sync.plist"))
-		cmd.Run()
-		cmd = exec.Command("launchctl", "start", scriptPrefix+"telltail-sync")
+		cmd := exec.Command("launchctl", "load", "-w", filepath.Join(dir, scriptPrefix+"telltail-sync.plist"))
 		cmd.Run()
 	}
 
@@ -108,7 +117,7 @@ func installCenter(authKey string) error {
 			return cli.Exit("We use systemctl/systemd to run services on boot. We cannot proceed if that is not available.", exitMissingDependency)
 		}
 
-		cmd := exec.Command("launchctl", "unload", filepath.Join(homeDir, startupPath, scriptPrefix+"telltail-center.plist"))
+		cmd := exec.Command("launchctl", "unload", "-w", filepath.Join(homeDir, startupPath, scriptPrefix+"telltail-center.plist"))
 		cmd.Run()
 	}
 
@@ -145,9 +154,7 @@ func installCenter(authKey string) error {
 			return cli.Exit("Cannot write to service file for systemd", exitFileNotModifiable)
 		}
 
-		cmd := exec.Command("launchctl", "load", filepath.Join(dir, scriptPrefix+"telltail-center.plist"))
-		cmd.Run()
-		cmd = exec.Command("launchctl", "start", scriptPrefix+"telltail-center")
+		cmd := exec.Command("launchctl", "load", "-w", filepath.Join(dir, scriptPrefix+"telltail-center.plist"))
 		cmd.Run()
 	}
 

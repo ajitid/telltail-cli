@@ -14,8 +14,8 @@ func uninstallSync() error {
 		return cli.Exit("Cannot determine your home folder", exitCannotDetermineUserHomeDir)
 
 	}
-	if cmdExists("systemctl") {
-		cmd := exec.Command("launchctl", "unload", filepath.Join(homeDir, startupPath, scriptPrefix+"telltail-sync.plist"))
+	if cmdExists("launchctl") {
+		cmd := exec.Command("launchctl", "unload", "-w", filepath.Join(homeDir, startupPath, scriptPrefix+"telltail-sync.plist"))
 		cmd.Run()
 	}
 
@@ -48,8 +48,8 @@ func uninstallCenter() error {
 		return cli.Exit("Cannot determine your home folder", exitCannotDetermineUserHomeDir)
 	}
 
-	if cmdExists("systemctl") {
-		cmd := exec.Command("launchctl", "unload", filepath.Join(homeDir, startupPath, scriptPrefix+"telltail-center.plist"))
+	if cmdExists("launchctl") {
+		cmd := exec.Command("launchctl", "unload", "-w", filepath.Join(homeDir, startupPath, scriptPrefix+"telltail-center.plist"))
 		cmd.Run()
 	}
 

@@ -34,29 +34,20 @@ func manageService(name string, action serviceAction) error {
 	}
 	dir := filepath.Join(homeDir, startupPath)
 
-	// when user asks for start/restart we also make sure that the script loads up on next boot as well
-	// Sidenote: oddly `load` might or might or not `start` the process (usually it does, but I've seen at times it doesn't)
-	//	but `unload` fo' sure `stop` the process
-	switch action {
-	case startService:
-	case restartService:
-		cmd := exec.Command("launchctl", "load", filepath.Join(dir, scriptPrefix+"telltail-"+name+".plist"))
-		cmd.Run()
-	}
-
 	// to observe the effect of these start/stop/load/unload commands, focus on disappearance and appearance of  % CPU
 	// in Activity Monitor (and not on the disappearance and appearance of the row itself)
 	// launch actions are not immediate — command itself is executed immediately but seems like launchd executes stuff in batches, and hence not immediate
 	var cmd *exec.Cmd
 	switch action {
 	case startService:
-		cmd = exec.Command("launchctl", "start", scriptPrefix+"telltail-"+name)
+		cmd = exec.Command("launchctl", "load", "-w", filepath.Join(dir, scriptPrefix+"telltail-"+name+".plist"))
 	case stopService:
-		cmd = exec.Command("launchctl", "stop", scriptPrefix+"telltail-"+name)
+		// omitting `-w` is intentional because we still want the service to run on reboot.
+		cmd = exec.Command("launchctl", "unload", filepath.Join(dir, scriptPrefix+"telltail-"+name+".plist"))
 	case restartService:
-		cmd = exec.Command("launchctl", "stop", scriptPrefix+"telltail-"+name)
+		cmd = exec.Command("launchctl", "unload", filepath.Join(dir, scriptPrefix+"telltail-"+name+".plist"))
 		cmd.Run()
-		cmd = exec.Command("launchctl", "start", scriptPrefix+"telltail-"+name)
+		cmd = exec.Command("launchctl", "load", "-w", filepath.Join(dir, scriptPrefix+"telltail-"+name+".plist"))
 	}
 	cmd.Run()
 
@@ -64,16 +55,6 @@ func manageService(name string, action serviceAction) error {
 }
 
 func editCenterAuthKey() error {
-	// tried a lot of stuff, but somehow env. var persists across stops, even across restarts
-	// because of this even changing env var and unload -> load doesn't affect anything (1)
-	// and the service runs even if I uninstall Center and reboot (2). `stop` works but only for that login session.
-	// Load takes in a `-w` flag, but it doesn't seem to affect either. I need systemctl daemon-reload type of thing.
-	// Need to investigate both (1) and (2) before enabling this feature.
-	if true {
-		return cli.Exit("This feature is unavailable for now", 2)
-	}
-	///////////////////////////
-
 	if !isServiceAvailable("center") {
 		// can also occur if user dir is not identifiable
 		return cli.Exit("This service is unavailable. Install it first before you act upon it.", exitServiceNotPresent)
@@ -117,7 +98,7 @@ func editCenterAuthKey() error {
 				if newKey == "" {
 					return nil
 				} else {
-					lines[i+1] = "    " + "<string>" + newKey + "</string>"
+					lines[i+1] = "      " + "<string>" + newKey + "</string>"
 				}
 				break
 			}
@@ -125,7 +106,9 @@ func editCenterAuthKey() error {
 	}
 
 	if !ableToParseExistingAuthKey {
-		return cli.Exit("Unable to change auth key because we've found an invalid config", exitInvalidConfig)
+		return cli.Exit("Unable to find auth key because we cannot process the existing config", exitInvalidConfig)
+		// TODO move from above to this messaage once you have robust way to parse config.
+		// return cli.Exit("Unable to find auth key because the config looks invalid", exitInvalidConfig)
 	}
 
 	output := strings.Join(lines, "\n")
