@@ -10,29 +10,34 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"time"
 
-	pb "github.com/schollz/progressbar/v3"
 	"github.com/urfave/cli/v2"
+	"github.com/vbauerster/mpb/v8"
+	"github.com/vbauerster/mpb/v8/decor"
 )
 
-// modified version of progressbar.DefaultBytes()
-func newBar(maxBytes int64, description ...string) *pb.ProgressBar {
-	desc := ""
-	if len(description) > 0 {
-		desc = description[0]
-	}
-	return pb.NewOptions64(
-		maxBytes,
-		pb.OptionSetDescription(desc),
-		pb.OptionSetWriter(os.Stderr),
-		pb.OptionSetWidth(25),
-		pb.OptionThrottle(65*time.Millisecond),
-		pb.OptionShowBytes(true),
-		pb.OptionShowCount(),
-		pb.OptionClearOnFinish(),
-		pb.OptionSetRenderBlankState(true),
+// while this is a definite progress bar,
+// you can find an indefinite one here: https://github.com/alcionai/corso/blob/e09c12077847389b04745a8dd11c73b6162e2767/src/internal/observe/observe.go#L203-L211
+// ^ saved in archive.is and archive.org/web
+func newBar(maxBytes int64, name string) (*mpb.Progress, *mpb.Bar) {
+	p := mpb.New(mpb.WithWidth(64))
+
+	bar := p.New(maxBytes,
+		mpb.BarStyle().Lbound("").Filler("█").Tip("░").Padding("░").Rbound(""),
+		mpb.PrependDecorators(
+			// len(name) + 1 ensure the name has one space on the right, no idea what decor.DidentRight does
+			decor.Name(name, decor.WC{W: len(name) + 1, C: decor.DidentRight}),
+			// upon completing, replace ETA decorator with "done" message
+			// (actually not needed as we are removing bar on complete, but keeping it for reference)
+			decor.OnComplete(
+				decor.AverageETA(decor.ET_STYLE_GO, decor.WC{W: 4}), "done",
+			),
+		),
+		mpb.AppendDecorators(decor.CountersKibiByte("% .2f / % .2f")),
+		mpb.BarRemoveOnComplete(),
 	)
+
+	return p, bar
 }
 
 func fileOrFolderExists(fullpath string) bool {
@@ -113,12 +118,15 @@ func downloadFile(url, toLocation string) (error, int) {
 		return fmt.Errorf("bad status: %s for %s", resp.Status, url), exitUrlNotDownloadable
 	}
 
-	bar := newBar(
+	p, bar := newBar(
 		resp.ContentLength,
 		"↓ "+fileName,
 	)
+	r := bar.ProxyReader(resp.Body)
+	defer r.Close()
 
-	_, err = io.Copy(io.MultiWriter(out, bar), resp.Body)
+	_, err = io.Copy(out, r)
+	p.Wait()
 	if err != nil {
 		return err, exitFileNotModifiable
 	}
