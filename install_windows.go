@@ -7,18 +7,62 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
+	"strings"
 
 	"github.com/urfave/cli/v2"
+	"golang.org/x/sys/windows/registry"
 )
 
 const startupPath = "AppData\\Roaming\\Microsoft\\Windows\\Start Menu\\Programs\\Startup"
 const binPath = ".local\\share\\telltail"
 
+func autohotkeyInstalled(rootKey registry.Key) (installed bool, version string) {
+	k, err := registry.OpenKey(rootKey, `SOFTWARE\AutoHotkey`, registry.QUERY_VALUE)
+	if err != nil {
+		return false, ""
+	}
+
+	v, _, err := k.GetStringValue("Version")
+	if err != nil {
+		return false, ""
+	}
+	return true, v
+}
+
+func checkForAutohotkeyv2() error {
+	// CURRENT_USER -> local install, LOCAL_MACHINE -> installed using admin privileges
+	// We'll first look for a local install first because GUI installer of AHK v1 always require admin privileges
+	installed, version := autohotkeyInstalled(registry.CURRENT_USER)
+	if !installed {
+		installed, version = autohotkeyInstalled(registry.LOCAL_MACHINE)
+	}
+
+	if installed {
+		if !strings.HasPrefix(version, "2.") {
+			return cli.Exit("Telltail needs AutoHotkey v2 for it to work while you have v"+version+" installed.\n"+
+				"Installing AHK v2 will not break your existing scripts. After installing it, come back and rerun this command to continue the setup.", exitMissingDependency)
+		}
+		/*
+			BUG: if you install AHK v1 followed by v2 both using GUI installers with admin privileges and then
+			uninstall v2 (but keep v1), AHK does not update the registry (fully) and shows v2 there. This means
+			that `telltail install` will falsely assume that the user has v2 installed and continue with the script.
+			While we can't do much about it, the AHK scripts we run themselves have a minimum required version flag set,
+			so we have a safety net there.
+		*/
+	} else {
+		return cli.Exit("AutoHotkey is not present. We need that to run this service everytime you log in.\n"+
+			"You can install v2 for free via https://www.autohotkey.com. Once installed, come back and rerun this command to continue the setup.", exitMissingDependency)
+	}
+	return nil
+}
+
 func installSync(params installSyncParams) error {
 	////// Check basic necessities exist
-	if !cmdExists("autohotkey.exe") {
-		return cli.Exit("AutoHotkey is not present. We need that to run this service everytime you log in.\n"+
-			"You install v2 for free via https://www.autohotkey.com. Once installed, come back and rerun this command to continue the setup.", exitMissingDependency)
+	{
+		err := checkForAutohotkeyv2()
+		if err != nil {
+			return err
+		}
 	}
 
 	homeDir, err := os.UserHomeDir()
@@ -107,9 +151,12 @@ func installSync(params installSyncParams) error {
 }
 
 func installCenter(authKey string) error {
-	if !cmdExists("autohotkey.exe") {
-		return cli.Exit("AutoHotkey is not present. We need that to run this service everytime you log in.\n"+
-			"You install v2 for free via https://www.autohotkey.com. Once installed, come back and rerun this command to continue the setup.", exitMissingDependency)
+	////// Check basic necessities exist
+	{
+		err := checkForAutohotkeyv2()
+		if err != nil {
+			return err
+		}
 	}
 
 	homeDir, err := os.UserHomeDir()

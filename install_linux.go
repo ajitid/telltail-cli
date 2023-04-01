@@ -18,7 +18,6 @@ const (
 
 func installSync(params installSyncParams) error {
 	////// Check basic necessities exist
-	// fmt.Println("Checking requirments...") <<< TODO this is useless and bearing for the user. Show them a progress bar and how much time is remaining instead
 	// check if system is x11, https://github.com/atotto/clipboard has ways to indentify it
 	env := os.Getenv("XDG_SESSION_TYPE")
 	if env != "x11" {
