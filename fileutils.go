@@ -20,10 +20,10 @@ import (
 // you can find an indefinite one here: https://github.com/alcionai/corso/blob/e09c12077847389b04745a8dd11c73b6162e2767/src/internal/observe/observe.go#L203-L211
 // ^ saved in archive.is and archive.org/web
 func newBar(maxBytes int64, name string) (*mpb.Progress, *mpb.Bar) {
-	p := mpb.New(mpb.WithWidth(64))
+	p := mpb.New(mpb.WithWidth(32))
 
 	bar := p.New(maxBytes,
-		mpb.BarStyle().Lbound("").Filler("█").Tip("░").Padding("░").Rbound(""),
+		mpb.BarStyle().Lbound("").Filler("█").Tip(" ").Padding(" ").Rbound(""),
 		mpb.PrependDecorators(
 			// len(name) + 1 ensure the name has one space on the right, no idea what decor.DidentRight does
 			decor.Name(name, decor.WC{W: len(name) + 1, C: decor.DidentRight}),

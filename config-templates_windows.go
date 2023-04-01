@@ -11,13 +11,12 @@ type syncAhkCfgAttrs struct {
 
 func getSyncAhkCfg() *template.Template {
 	tmpl, err := template.New("sync-ahk-cfg-windows").Parse(strings.TrimSpace(`
+#Requires AutoHotkey v2+
 #SingleInstance Ignore
-#NoEnv  ; suggested by AHK
-SendMode Input  ; suggested by AHK
 
-SetWorkingDir {{.BinDirectory}}
-Runwait taskkill /im telltail-sync.exe,,Hide
-RunWait telltail-sync.exe --url https://telltail.{{.Tailnet}} --device {{.Device}},,Hide
+SetWorkingDir "{{.BinDirectory}}"
+Runwait "taskkill /im telltail-sync.exe", , "Hide"
+RunWait "telltail-sync.exe --url https://telltail.{{.Tailnet}} --device {{.Device}}", , "Hide"
 `))
 	// I expected AHK to kill wasn't telltail-sync.exe on script restart
 	// but it isn't doing it so I YOLO-ed using taskkill
@@ -34,15 +33,14 @@ type centerAhkCfgAttrs struct {
 }
 
 func getCenterAhkCfg() *template.Template {
-	tmpl, err := template.New("sync-ahk-cfg-windows").Parse(strings.TrimSpace(`
+	tmpl, err := template.New("center-ahk-cfg-windows").Parse(strings.TrimSpace(`
+#Requires AutoHotkey v2+
 #SingleInstance Ignore
-#NoEnv  ; suggested by AHK
-SendMode Input  ; suggested by AHK
 
-EnvSet, TS_AUTHKEY, {{.AuthKey}}
-SetWorkingDir {{.BinDirectory}}
-Runwait taskkill /im telltail-center.exe,,Hide
-RunWait telltail-center.exe,,Hide
+EnvSet "TS_AUTHKEY", "{{.AuthKey}}"
+SetWorkingDir "{{.BinDirectory}}"
+Runwait "taskkill /im telltail-center.exe", , "Hide"
+RunWait "telltail-center.exe", , "Hide"
 `))
 
 	if err != nil {

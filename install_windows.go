@@ -18,7 +18,7 @@ func installSync(params installSyncParams) error {
 	////// Check basic necessities exist
 	if !cmdExists("autohotkey.exe") {
 		return cli.Exit("AutoHotkey is not present. We need that to run this service everytime you log in.\n"+
-			"You install it for free via https://www.autohotkey.com. Once installed, come back and rerun this command to continue the setup.", exitMissingDependency)
+			"You install v2 for free via https://www.autohotkey.com. Once installed, come back and rerun this command to continue the setup.", exitMissingDependency)
 	}
 
 	homeDir, err := os.UserHomeDir()
@@ -109,7 +109,7 @@ func installSync(params installSyncParams) error {
 func installCenter(authKey string) error {
 	if !cmdExists("autohotkey.exe") {
 		return cli.Exit("AutoHotkey is not present. We need that to run this service everytime you log in.\n"+
-			"You install it for free via https://www.autohotkey.com. Once installed, come back and rerun this command to continue the setup.", exitMissingDependency)
+			"You install v2 for free via https://www.autohotkey.com. Once installed, come back and rerun this command to continue the setup.", exitMissingDependency)
 	}
 
 	homeDir, err := os.UserHomeDir()
