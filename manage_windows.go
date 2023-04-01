@@ -70,15 +70,14 @@ func editCenterAuthKey() error {
 	ableToParseExistingAuthKey := false
 
 	lines := strings.Split(string(input), "\n")
-	// I thought to first use fmt.Sscanf but consistency is sexy
-	// Teacher: The author mean to say that a consistent, repeatable code across platforms is easy to refactor and is maintainable
-	// The reason it is copied over and not DRY-ed is because macOS uses launchd, which uses XML for its config
-	startStr := "EnvSet, TS_AUTHKEY, "
+	// I thought to first use fmt.Sscanf but this is fine for now
+	// The reason it is copied over (from linux) and not DRY-ed is because macOS uses launchd, which uses XML for its config
+	startStr := "EnvSet \"TS_AUTHKEY\", "
 	for i, line := range lines {
 		if strings.HasPrefix(line, startStr) {
 			ableToParseExistingAuthKey = true
 
-			existingAuthKey := strings.TrimPrefix(line, startStr)
+			existingAuthKey := strings.Trim(strings.TrimPrefix(line, startStr), "\"")
 			if existingAuthKey == "" {
 				fmt.Println("There doesn't seem to be an existing auth key, but we can add one.")
 			} else {
@@ -92,7 +91,7 @@ func editCenterAuthKey() error {
 			if newKey == "" {
 				return nil
 			} else {
-				lines[i] = startStr + newKey
+				lines[i] = startStr + "\"" + newKey + "\""
 			}
 			break
 		}
