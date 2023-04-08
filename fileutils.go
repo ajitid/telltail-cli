@@ -92,30 +92,30 @@ func cmdExists(cmd string) bool {
 }
 
 // taken from https://stackoverflow.com/questions/11692860/how-can-i-efficiently-download-a-large-file-using-go
-func downloadFile(url, toLocation string) (error, int) {
+func downloadFile(url, toLocation string) (int, error) {
 	dirName := filepath.Dir(toLocation)
 	fileName := filepath.Base(toLocation)
 	err := os.MkdirAll(dirName, os.ModePerm)
 	if err != nil {
 		log.Println("Unable to create folder", dirName, "for file", fileName)
-		return err, exitDirNotModifiable
+		return exitDirNotModifiable, err
 	}
 
 	// TODO check if it can successfully override existing file
 	out, err := os.Create(toLocation)
 	if err != nil {
-		return err, exitFileNotModifiable
+		return exitFileNotModifiable, err
 	}
 	defer out.Close()
 
 	resp, err := http.Get(url)
 	if err != nil {
-		return err, exitUrlNotDownloadable
+		return exitUrlNotDownloadable, err
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("bad status: %s for %s", resp.Status, url), exitUrlNotDownloadable
+		return exitCannotDetermineUserHomeDir, fmt.Errorf("bad status: %s for %s", resp.Status, url)
 	}
 
 	p, bar := newBar(
@@ -128,10 +128,10 @@ func downloadFile(url, toLocation string) (error, int) {
 	_, err = io.Copy(out, r)
 	p.Wait()
 	if err != nil {
-		return err, exitFileNotModifiable
+		return exitFileNotModifiable, err
 	}
 
-	return nil, 0
+	return 0, nil
 }
 
 func markFileAsExecutableOnUnix(fullPath string) {

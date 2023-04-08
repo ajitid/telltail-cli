@@ -84,7 +84,7 @@ func installSync(params installSyncParams) error {
 		}
 
 		zipLoc := filepath.Join(baseBinLoc, "clipnotify.zip")
-		err, exitCode := downloadFile(
+		exitCode, err := downloadFile(
 			"https://github.com/ajitid/clipnotify-for-desktop-os/releases/download/"+version+"/clipnotify-win-"+runtime.GOARCH+".zip",
 			zipLoc)
 		if err != nil {
@@ -110,7 +110,7 @@ func installSync(params installSyncParams) error {
 	////// Download and store the telltail-sync
 	{
 		loc := filepath.Join(baseBinLoc, "telltail-sync.exe")
-		err, exitCode := downloadFile(
+		exitCode, err := downloadFile(
 			"https://github.com/ajitid/telltail-sync/releases/download/"+version+"/telltail-sync-win-"+runtime.GOARCH+".exe",
 			loc)
 		if err != nil {
@@ -174,7 +174,7 @@ func installCenter(authKey string) error {
 	////// Download and store the telltail-center
 	{
 		loc := filepath.Join(baseBinLoc, "telltail-center.exe")
-		err, exitCode := downloadFile(
+		exitCode, err := downloadFile(
 			"https://github.com/ajitid/telltail-center/releases/download/"+version+"/telltail-center-win-"+runtime.GOARCH+".exe",
 			loc)
 		if err != nil {
