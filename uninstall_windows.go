@@ -12,7 +12,7 @@ import (
 func uninstallSync() error {
 	{
 		cmd := exec.Command("taskkill", "/im", "telltail-sync.exe")
-		cmd.Output()
+		cmd.Run()
 	}
 
 	homeDir, err := os.UserHomeDir()
@@ -27,7 +27,7 @@ func uninstallSync() error {
 
 	{
 		dir := filepath.Join(homeDir, binPath)
-		removeFolderIfPresent(filepath.Join(dir, "clipnotify"))
+		removeFileIfPresent(filepath.Join(dir, "clipnotify.exe"))
 		removeFileIfPresent(filepath.Join(dir, "telltail-sync.exe"))
 		removeDirIfEmpty(dir) // Doesn't remove the dir because windows says the access to this dir is held by some other program. Works if I rerun the uninstall though.
 	}
@@ -37,7 +37,7 @@ func uninstallSync() error {
 func uninstallCenter() error {
 	{
 		cmd := exec.Command("taskkill", "/im", "telltail-center.exe")
-		cmd.Output()
+		cmd.Run()
 	}
 
 	homeDir, err := os.UserHomeDir()

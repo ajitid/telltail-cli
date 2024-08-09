@@ -74,36 +74,17 @@ func installSync(params installSyncParams) error {
 	////// stop any running processes first, otherwise windows won't let us override them
 	{
 		cmd := exec.Command("taskkill", "/im", "telltail-sync.exe")
-		cmd.Output()
+		cmd.Run()
 	}
 
 	////// Download and store clipnotify
 	{
-		if !cmdExists("tar.exe") {
-			return cli.Exit("Please upgrade to Windows 10 build 17063 or higher as we need `tar.exe` to extract a zip file.", exitMissingDependency)
-		}
-
-		zipLoc := filepath.Join(baseBinLoc, "clipnotify.zip")
+		loc := filepath.Join(baseBinLoc, "clipnotify.exe")
 		exitCode, err := downloadFile(
-			"https://github.com/ajitid/clipnotify-for-desktop-os/releases/download/"+version+"/clipnotify-win-"+runtime.GOARCH+".zip",
-			zipLoc)
+			"https://github.com/ajitid/clipnotify-for-desktop-os/releases/download/"+version+"/clipnotify-win-"+runtime.GOARCH+".exe",
+			loc)
 		if err != nil {
 			return cli.Exit(err, exitCode)
-		}
-
-		err = removeFolderIfPresent(filepath.Join(baseBinLoc, "clipnotify"))
-		if err != nil {
-			return cli.Exit("Couldn't delete existing clipnotify folder", exitDirNotModifiable)
-		}
-		extract := exec.Command("tar.exe", "-xf", "clipnotify.zip")
-		extract.Dir = baseBinLoc
-		_, err = extract.Output()
-		if err != nil {
-			return cli.Exit("Couldn't extract clipnotify.zip", exitFileNotModifiable)
-		}
-		err = removeFileIfPresent(zipLoc)
-		if err != nil {
-			fmt.Println("Couldn't delete the zip, please do it by yourself. It is at:\n", zipLoc)
 		}
 	}
 
@@ -168,7 +149,7 @@ func installCenter(authKey string) error {
 	////// stop any running processes first, otherwise windows won't let us override them
 	{
 		cmd := exec.Command("taskkill", "/im", "telltail-center.exe")
-		cmd.Output()
+		cmd.Run()
 	}
 
 	////// Download and store the telltail-center

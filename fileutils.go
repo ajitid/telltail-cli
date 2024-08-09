@@ -136,8 +136,7 @@ func downloadFile(url, toLocation string) (int, error) {
 
 func markFileAsExecutableOnUnix(fullPath string) {
 	cmd := exec.Command("chmod", "+x", fullPath)
-	_, err := cmd.Output()
-	if err != nil {
+	if err := cmd.Run(); err != nil {
 		fmt.Println("cannnot mark file as executable:", fullPath)
 		panic(err)
 	}
